@@ -17,7 +17,7 @@ helm upgrade -i cert-manager-csi-driver-cacerts \
 
 # Use public plugin.yaml
 vcluster create vcluster -n vcluster \
-  -f https://github.com/kubeops/vcluster-plugin/raw/master/plugin.yaml
+  -f https://github.com/kubedb/vcluster-plugin/raw/master/plugin.yaml
 ```
 
 This will create a new vcluster with the plugin installed. After that, wait for vcluster to start up and check:
