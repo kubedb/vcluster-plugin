@@ -1,15 +1,15 @@
 # Plugin Definition below. This is essentially a valid helm values file that will be merged
 # with the other vcluster values during vcluster create or helm install.
 plugin:
-  kubedb-plugin:
+  kubedb:
     version: v2
-    image: ghcr.io/kubedb/kubedb-vcluster-plugin:v0.0.1
+    image: ghcr.io/kubedb/vcluster-plugin-kubedb:v0.0.1
     imagePullPolicy: Always
     rbac:
       role:
         extraRules:
-          - apiGroups: ["cacerts.csi.cert-manager.io"]
-            resources: ["caproviderclasses"]
+          - apiGroups: ["kubedb.com"]
+            resources: ["*"]
             verbs: ["*"]
       clusterRole:
         extraRules:
@@ -25,6 +25,6 @@ rbac:
   role:
     enabled: true
     extraRules:
-      - apiGroups: ["cacerts.csi.cert-manager.io"]
-        resources: ["caproviderclasses"]
+      - apiGroups: ["kubedb.com"]
+        resources: ["*"]
         verbs: ["*"]

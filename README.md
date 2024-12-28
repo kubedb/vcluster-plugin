@@ -47,7 +47,7 @@ To just build the plugin image and push it to the registry, run:
 
 ```
 # Build
-docker build --push -t ghcr.io/kubedb/kubedb-vcluster-plugin:v0.0.1 .
+docker build --push -t ghcr.io/kubedb/vcluster-plugin-kubedb:v0.0.1 .
 
 # Multi-arch Build
 ## Ensure docker builder with multi platform support
@@ -58,7 +58,7 @@ docker buildx create \
 ## Build & push image
 docker build --push \
   --builder container --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/kubedb/kubedb-vcluster-plugin:v0.0.1 .
+  -t ghcr.io/kubedb/vcluster-plugin-kubedb:v0.0.1 .
 ```
 
 Then exchange the image in the `plugin.yaml`.

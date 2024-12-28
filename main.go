@@ -9,18 +9,17 @@ import (
 	"github.com/loft-sh/vcluster/pkg/util/translate"
 	"k8s.io/klog/v2"
 	"kubedb.dev/vcluster-plugin/api"
-	"kubedb.dev/vcluster-plugin/hooks"
 	"kubedb.dev/vcluster-plugin/syncers"
 )
 
 func main() {
 	ctx := plugin.MustInit()
-	cfg, err := Init(ctx)
+	_, err := Init(ctx)
 	if err != nil {
 		klog.Fatalf("validate config: %v", err)
 	}
-	plugin.MustRegister(syncers.NewCAProviderClassSyncer(ctx))
-	plugin.MustRegister(hooks.NewPodHook(cfg))
+	plugin.MustRegister(syncers.NewPostgresSyncer(ctx))
+	// plugin.MustRegister(hooks.NewPodHook(cfg))
 	// plugin.MustRegister(hooks.NewSecretHook())
 	plugin.MustStart()
 }
