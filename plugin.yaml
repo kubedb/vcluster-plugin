@@ -3,7 +3,7 @@
 plugin:
   kubedb:
     version: v2
-    image: ghcr.io/kubedb/vcluster-plugin-kubedb:v0.0.1
+    image: ashraf10039/my-plugin:latest
     imagePullPolicy: Always
     rbac:
       role:
@@ -28,3 +28,11 @@ rbac:
       - apiGroups: ["kubedb.com"]
         resources: ["*"]
         verbs: ["*"]
+
+#sync:
+#  fromHost:
+#    customResources:
+#      # Use the plural name of your CRD (often lower-case) with its API group.
+#      appbindings.appcatalog.appscode.com:
+#        enabled: true
+#        scope: Namespaced

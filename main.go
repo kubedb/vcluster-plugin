@@ -19,6 +19,7 @@ func main() {
 		klog.Fatalf("validate config: %v", err)
 	}
 	plugin.MustRegister(syncers.NewPostgresSyncer(ctx))
+	plugin.MustRegister(syncers.NewMySQLSyncer(ctx))
 	// plugin.MustRegister(hooks.NewPodHook(cfg))
 	// plugin.MustRegister(hooks.NewSecretHook())
 	plugin.MustStart()

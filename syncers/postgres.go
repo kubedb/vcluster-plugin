@@ -12,6 +12,8 @@ import (
 	diff "github.com/yudai/gojsondiff"
 	"github.com/yudai/gojsondiff/formatter"
 	"k8s.io/apimachinery/pkg/api/equality"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -30,6 +32,7 @@ func NewPostgresSyncer(ctx *synccontext.RegisterContext) synctypes.Base {
 
 type postgresSyncer struct {
 	translator.NamespacedTranslator
+	rtx *synccontext.RegisterContext
 }
 
 var _ synctypes.Initializer = &postgresSyncer{}
@@ -47,7 +50,7 @@ func (s *postgresSyncer) Init(ctx *synccontext.RegisterContext) error {
 			return err
 		}
 	*/
-
+	s.rtx = ctx
 	_, _, err := translate.EnsureCRDFromPhysicalCluster(ctx.Context, ctx.PhysicalManager.GetConfig(), ctx.VirtualManager.GetConfig(), api.SchemeGroupVersion.WithKind(api.ResourceKindPostgres))
 	return err
 }
@@ -55,6 +58,11 @@ func (s *postgresSyncer) Init(ctx *synccontext.RegisterContext) error {
 var _ synctypes.Syncer = &postgresSyncer{}
 
 func (s *postgresSyncer) SyncToHost(ctx *synccontext.SyncContext, vObj client.Object) (ctrl.Result, error) {
+	// Call removeConflictingOwnerReference before syncing to the host
+	err := s.removeConflictingOwnerReference(ctx.Context, vObj.GetNamespace(), vObj.GetName())
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	return s.SyncToHostCreate(ctx, vObj, s.translate(ctx.Context, vObj.(*api.Postgres)))
 }
 
@@ -147,6 +155,31 @@ func printDiff(original, updated client.Object) error {
 		}
 		fmt.Println(result)
 		return nil
+	}
+
+	return nil
+}
+
+func (s *postgresSyncer) removeConflictingOwnerReference(ctx context.Context, namespace, serviceName string) error {
+	clientset := kubernetes.NewForConfigOrDie(s.rtx.VirtualManager.GetConfig())
+	service, err := clientset.CoreV1().Services(namespace).Get(ctx, serviceName, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to get service: %v", err)
+	}
+
+	var newOwnerReferences []metav1.OwnerReference
+	for _, ownerRef := range service.OwnerReferences {
+		if ownerRef.Controller != nil && *ownerRef.Controller {
+			ownerRef.Controller = nil
+		}
+		ownerRef.UID = ""
+		newOwnerReferences = append(newOwnerReferences, ownerRef)
+	}
+	service.OwnerReferences = newOwnerReferences
+
+	_, err = clientset.CoreV1().Services(namespace).Update(ctx, service, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update service: %v", err)
 	}
 
 	return nil
